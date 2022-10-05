@@ -3,7 +3,8 @@ defmodule RidexWeb.UserSocket do
   alias Ridex.Guardian
 
   channel "cell:*", RidexWeb.CellChannel
-  
+  channel "user:*", RidexWeb.UserChannel
+
   def connect(%{"token" => token}, socket) do
     case Guardian.resource_from_token(token) do
       {:ok, user, _claims} ->
@@ -12,7 +13,7 @@ defmodule RidexWeb.UserSocket do
         :error
     end
   end
-  def connect(_params, _socket), do :error
-    def id(socket), do: socket.assigns[:current_user].id |> to_string()
-  end
+  def connect(_params, _socket), do: :error
+
+  def id(socket), do: socket.assigns[:current_user].id |> to_string()
 end

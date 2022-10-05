@@ -26,7 +26,7 @@ config :ridex, RidexWeb.Endpoint,
   secret_key_base: "1UOhSSlQCqOeGC4CoCkEi5gEM7CZmEN3xjJODDlFKuc5+ygiiibACV6zk85s8Er1",
   watchers: [
     # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]}
+    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch --loader:.js=jsx)]}
   ]
 
 # ## SSL Support
