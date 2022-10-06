@@ -2,8 +2,10 @@ defmodule RidexWeb.UserSocket do
   use Phoenix.Socket
   alias Ridex.Guardian
 
-  channel "cell:*", RidexWeb.CellChannel
   channel "user:*", RidexWeb.UserChannel
+  channel "cell:*", RidexWeb.CellChannel
+
+  transport :websocket, Phoenix.Transports.WebSocket
 
   def connect(%{"token" => token}, socket) do
     case Guardian.resource_from_token(token) do

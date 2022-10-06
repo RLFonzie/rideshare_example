@@ -3,7 +3,7 @@ import React, { useState } from "react";
 export default ({ onLogin }) => {
   const [phone, setPhone] = useState("");
 
-  const onChange = (event) => setPhone(event.target.value);
+  const handleChange = (event) => setPhone(event.target.value);
 
   const login = (userType) => () =>
     fetch("/api/authenticate", {
@@ -26,11 +26,11 @@ export default ({ onLogin }) => {
         type="text"
         placeholder="Phone number"
         value={phone}
-        onChange={onChange}
+        onChange={handleChange}
       />
 
-      <button onClick={login('driver')}>Login as driver</button>
-      <button onClick={login('rider')}>Login as rider</button>
+      <button onClick={login("driver")}>Login as driver</button>
+      <button onClick={login("rider")}>Login as rider</button>
     </div>
   );
 };

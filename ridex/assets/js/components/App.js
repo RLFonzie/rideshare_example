@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Login from "./login";
-import Map from "./map";
+import Login from "./Login";
+import Map from "./Map";
 
 export default () => {
   const [user, setUser] = useState();
