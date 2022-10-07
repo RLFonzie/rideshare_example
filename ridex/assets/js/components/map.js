@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
-import { Socket } from "phoenix";
+import { Socket, Presence } from "phoenix";
 import { usePosition } from "../util/usePosition";
 import Geohash from "latlon-geohash";
 
@@ -12,16 +12,24 @@ export default ({ user }) => {
   const [channel, setChannel] = useState();
   const [rideRequests, setRideRequests] = useState([]);
   const [userChannel, setUserChannel] = useState();
+  const [presences, setPresences] = useState({});
+
+  const getLat = (position) => (position ? position.lat : 0);
+  const getLng = (position) => (position ? position.lng : 0);
 
   useEffect(() => {
-    const socket = new Socket("/socket", { params: { token: user.token } });
+    const socket = new Socket("/socket", {
+      params: { token: user.token, position },
+    });
     socket.connect();
 
     if (!position) {
       return;
     }
 
-    const phxChannel = socket.channel("cell:" + geohashFromPosition(position));
+    const phxChannel = socket.channel("cell:" + geohashFromPosition(position), {
+      position: position,
+    });
     phxChannel.join().receive("ok", (response) => {
       console.log("Joined channel!");
       setChannel(phxChannel);
@@ -34,7 +42,13 @@ export default ({ user }) => {
     });
 
     return () => phxChannel.leave();
-  }, [geohashFromPosition(position)]);
+  }, [geohashFromPosition(position), position]);
+
+  useEffect(() => {
+    if (channel) {
+      channel.push("update_position", position);
+    }
+  }, [getLat(position), getLng(position), position]);
 
   if (!position) {
     return <div>Awaiting for position...</div>;
@@ -51,9 +65,26 @@ export default ({ user }) => {
     setRideRequests(rideRequests.concat([rideRequest]))
   );
 
+  channel.on("presence_state", (state) => {
+    let syncedPresences = Presence.syncState(presences, state);
+    setPresences(syncedPresences);
+  });
+
+  channel.on("presence_diff", (response) => {
+    let syncedPresences = Presence.syncDiff(presences, response);
+    setPresences(syncedPresences);
+  });
+
   userChannel.on("ride:created", (ride) =>
     console.log("A ride has been created!")
   );
+
+  const positionFromPresences = Presence.list(presences)
+    .filter((presence) => !!presence.metas)
+    .map((presence) => presence.metas[0]);
+
+  console.log(positionFromPresences);
+  console.log(rideRequests);
 
   let acceptRideRequest = (request_id) =>
     channel.push("ride:accept_request", {
@@ -89,6 +120,9 @@ export default ({ user }) => {
             </Popup>
           </Marker>
         ))}
+        {positionFromPresences.map(({ lat, lng, phx_ref }) => {
+          <Marker key={phx_ref} position={{ lat, lng }} />;
+        })}
       </MapContainer>
     </div>
   );
